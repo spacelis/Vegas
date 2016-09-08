@@ -22,4 +22,5 @@ trait BaseHTMLRenderer {
 
   def show(implicit fn: String => Unit)
 
+  def show(implicit fn: (String, String) => Unit)
 }

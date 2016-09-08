@@ -68,6 +68,13 @@ case class StaticHTMLRenderer(specJson: String) extends BaseHTMLRenderer {
   // Continence method
   def show(implicit fn: String => Unit) = fn(frameHTML())
 
+  override def show(implicit fn: (String, String) => Unit): Unit = {
+    throw new IllegalArgumentException(
+      """
+        | Vegas StaticHTMLRenderer require a display function of type (String) => Unit
+        | try "implicit val display: (String) => Unit = display.html(_)
+      """.stripMargin)
+  }
 }
 
 object StaticHTMLRenderer {
