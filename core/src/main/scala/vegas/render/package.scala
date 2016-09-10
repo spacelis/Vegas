@@ -5,6 +5,6 @@ package vegas
   */
 package object render {
 
-  val HTMLRenderer = StaticHTMLRenderer
+  val HTMLRenderer = FlatStaticHTMLRenderer
 
 }

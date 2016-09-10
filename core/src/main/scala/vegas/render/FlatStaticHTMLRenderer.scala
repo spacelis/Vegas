@@ -4,16 +4,33 @@ import vegas.DSL.SpecBuilder
 import vegas.spec.Spec.ExtendedUnitSpec
 
 /**
-  * @author Aish Fenton.
+  * @author Wen Li.
   */
 case class FlatStaticHTMLRenderer(spec: ExtendedUnitSpec) extends BaseHTMLRenderer {
 
+  /**
+    * Mixing the script with its dependencies
+    * @param script the script to mix in
+    * @param additionalImports any additional libs for the script
+    * @return
+    */
   def requireJSSnippet(script: String, additionalImports: Map[String, String] = Map.empty) =
     s"""
-       | require([${(JSImports ++ additionalImports).values.map { s => s"'${s}'" }.mkString(", ")}],
-       |   function(${(JSImports ++ additionalImports).values.mkString(", ")}) {
-       |     ${script}
-       | });
+       | (function(){
+       |   require(["https://d3js.org/d3.v3.min.js"], function(d3){
+       |     require(['https://vega.github.io/vega/vega.js', 'https://vega.github.io/vega-lite/vega-lite.js'], function(vg, vl){
+       |       window['vg'] = vg;
+       |       window['vl'] = vl;
+       |       require(['https://vega.github.io/vega-editor/vendor/vega-embed.js'], function(vg_embed){
+       |         window['vg']['embed'] = vg_embed;
+       |         require([${additionalImports.values.map { s => s"'${s}'" }.mkString(", ")}],
+       |           function(${additionalImports.values.mkString(", ")}) {
+       |             ${script}
+       |         });
+       |       });
+       |     })
+       |   });
+       | })();
      """.stripMargin
 
   def JS(name: String = this.defaultName) = requireJSSnippet(
@@ -22,9 +39,9 @@ case class FlatStaticHTMLRenderer(spec: ExtendedUnitSpec) extends BaseHTMLRender
        |   mode: "vega-lite",
        |   spec: ${vegas.spec.toJson(spec)}
        | }
-       | vg.embed("#$name", embedSpec, function(error, result) {
-       |   if (err.requireType !== 'scripterror') {
-       |     throw(err);
+       | window.vg.embed("#$name", embedSpec, function(error, result) {
+       |   if (error) {
+       |     throw(error);
        |   }
        | });
     """.stripMargin)
