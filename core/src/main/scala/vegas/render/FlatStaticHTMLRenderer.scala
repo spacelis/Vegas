@@ -17,18 +17,33 @@ case class FlatStaticHTMLRenderer(spec: ExtendedUnitSpec) extends BaseHTMLRender
   def requireJSSnippet(script: String, additionalImports: Map[String, String] = Map.empty) =
     s"""
        | (function(){
-       |   require(["https://d3js.org/d3.v3.min.js"], function(d3){
-       |     require(['https://vega.github.io/vega/vega.js', 'https://vega.github.io/vega-lite/vega-lite.js'], function(vg, vl){
-       |       window['vg'] = vg;
-       |       window['vl'] = vl;
-       |       require(['https://vega.github.io/vega-editor/vendor/vega-embed.js'], function(vg_embed){
-       |         window['vg']['embed'] = vg_embed;
-       |         require([${additionalImports.values.map { s => s"'${s}'" }.mkString(", ")}],
-       |           function(${additionalImports.values.mkString(", ")}) {
-       |             ${script}
-       |         });
-       |       });
-       |     })
+       |   require.config({
+       |     paths: {
+       |       "d3": "https://d3js.org/d3.v3.min",
+       |       "vg": "https://vega.github.io/vega/vega",
+       |       "vl": "https://vega.github.io/vega-lite/vega-lite",
+       |       "vg_embed": "https://vega.github.io/vega-editor/vendor/vega-embed"
+       |     },
+       |     shim: {
+       |       vg_embed: {
+       |         deps: ["vegas"],
+       |         exports: "vg.embed"
+       |       },
+       |       vg: {
+       |         deps: ["d3"],
+       |         exports: "vg"
+       |       }
+       |     }
+       |   });
+       |   define("vegas", ["d3", "vg", "vl"], function(d3, vg, vl){
+       |     window["vg"] = vg;
+       |     window["vl"] = vl;
+       |     return vg;
+       |   });
+       |   require([${(additionalImports.values ++ Seq("vg_embed")).map { s => s"'${s}'" }.mkString(", ")}],
+       |     function(${(additionalImports.keys ++ Seq("vg_embed")).map { s => s"${s}" }.mkString(", ")} ){
+       |     window.vg.embed = vg_embed;
+       |     $script
        |   });
        | })();
      """.stripMargin
@@ -60,7 +75,10 @@ case class FlatStaticHTMLRenderer(spec: ExtendedUnitSpec) extends BaseHTMLRender
     }
 
   // Continence method
-  override def show(implicit fn: (String, String) => Unit) = fn(HTML(), JS())
+  override def show(implicit fn: (String, String) => Unit) = {
+    val name = defaultName
+    fn(HTML(name), JS(name))
+  }
 
   override def show(implicit fn: (String) => Unit): Unit = {
     throw new IllegalArgumentException(
