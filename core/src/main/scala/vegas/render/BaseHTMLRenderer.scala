@@ -7,6 +7,8 @@ import vegas.spec.Spec.ExtendedUnitSpec
   */
 trait BaseHTMLRenderer {
 
+  type DisplayFnType
+
   def JSImports = collection.immutable.ListMap(
     "d3" -> "https:////d3js.org/d3.v3.min.js",
     "vg" -> "https://vega.github.io/vega/vega.js",
@@ -20,7 +22,5 @@ trait BaseHTMLRenderer {
 
   def specJson: String
 
-  def show(implicit fn: String => Unit)
-
-  def show(implicit fn: (String, String) => Unit)
+  def show(implicit fn: DisplayFnType)
 }

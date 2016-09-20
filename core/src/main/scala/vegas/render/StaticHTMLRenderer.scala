@@ -9,6 +9,8 @@ import vegas.spec.Spec.ExtendedUnitSpec
 case class StaticHTMLRenderer(specJson: String) extends BaseHTMLRenderer {
   import vegas.spec.Spec.Implicits._
 
+  override type DisplayFnType = String => Unit
+
   def importsHTML(additionalImports: String*) = (JSImports.values ++ additionalImports).map { s => "<script src=\"" + s + "\" charset=\"utf-8\"></script>" }.mkString("\n")
 
   def headerHTML(additionalImports: String*) =
@@ -52,7 +54,7 @@ case class StaticHTMLRenderer(specJson: String) extends BaseHTMLRenderer {
   def frameHTML(name: String = defaultName) = {
     val frameName = "frame-" + name
     s"""
-      |  <iframe id="${frameName}" sandbox="allow-scripts allow-same-origin" style="border: none; width: 100%" srcdoc="${xml.Utility.escape(pageHTML(name))}"></iframe>
+      |  <iframe id="$frameName" sandbox="allow-scripts allow-same-origin" style="border: none; width: 100%" srcdoc="${xml.Utility.escape(pageHTML(name))}"></iframe>
       |  <script>
       |    if (typeof resizeIFrame != 'function') {
       |      function resizeIFrame(el, k) {
@@ -60,21 +62,14 @@ case class StaticHTMLRenderer(specJson: String) extends BaseHTMLRenderer {
       |        if (k <= 7) { setTimeout(function() { resizeIFrame(el, k+1) }, 1000) };
       |      }
       |    }
-      |    $$().ready( function() { resizeIFrame($$('#${frameName}').get(0), 1); });
+      |    $$().ready( function() { resizeIFrame($$('#$frameName').get(0), 1); });
       |  </script>
     """.stripMargin
     }
 
   // Continence method
-  def show(implicit fn: String => Unit) = fn(frameHTML())
+  override def show(implicit fn: String => Unit) = fn(frameHTML())
 
-  override def show(implicit fn: (String, String) => Unit): Unit = {
-    throw new IllegalArgumentException(
-      """
-        | Vegas StaticHTMLRenderer require a display function of type (String) => Unit
-        | try "implicit val display: (String) => Unit = display.html(_)
-      """.stripMargin)
-  }
 }
 
 object StaticHTMLRenderer {

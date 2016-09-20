@@ -8,6 +8,7 @@ import vegas.spec.Spec.ExtendedUnitSpec
   */
 case class FlatStaticHTMLRenderer(spec: ExtendedUnitSpec) extends BaseHTMLRenderer {
 
+  override type DisplayFnType = (String, String) => Unit
   /**
     * Mixing the script with its dependencies
     * @param script the script to mix in
@@ -40,8 +41,8 @@ case class FlatStaticHTMLRenderer(spec: ExtendedUnitSpec) extends BaseHTMLRender
        |     window["vl"] = vl;
        |     return vg;
        |   });
-       |   require([${(additionalImports.values ++ Seq("vg_embed")).map { s => s"'${s}'" }.mkString(", ")}],
-       |     function(${(additionalImports.keys ++ Seq("vg_embed")).map { s => s"${s}" }.mkString(", ")} ){
+       |   require([${(additionalImports.values ++ Seq("vg_embed")).map { s => s"'$s'" }.mkString(", ")}],
+       |     function(${(additionalImports.keys ++ Seq("vg_embed")).map { s => s"$s" }.mkString(", ")} ){
        |     window.vg.embed = vg_embed;
        |     $script
        |   });
@@ -70,23 +71,16 @@ case class FlatStaticHTMLRenderer(spec: ExtendedUnitSpec) extends BaseHTMLRender
     */
   def HTML(name: String = defaultName) = {
     s"""
-       | <div id="${name}"></div>
+       | <div id="$name"></div>
     """.stripMargin
     }
 
   // Continence method
-  override def show(implicit fn: (String, String) => Unit) = {
+  override def show(implicit fn: DisplayFnType) = {
     val name = defaultName
     fn(HTML(name), JS(name))
   }
 
-  override def show(implicit fn: (String) => Unit): Unit = {
-    throw new IllegalArgumentException(
-      """
-        | Vegas FlatStaticHTMLRenderer require a display function of type (String, String) => Unit
-        | try "implicit val display: (String, String) => Unit = { display.html(_); display.javascript(_) }
-      """.stripMargin)
-  }
 }
 
 object FlatStaticHTMLRenderer {
