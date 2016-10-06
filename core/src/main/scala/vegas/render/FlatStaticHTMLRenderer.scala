@@ -27,7 +27,7 @@ case class FlatStaticHTMLRenderer(spec: ExtendedUnitSpec) extends BaseHTMLRender
        |     },
        |     shim: {
        |       vg_embed: {
-       |         deps: ["vegas"],
+       |         deps: ["vega_bundle"],
        |         exports: "vg.embed"
        |       },
        |       vg: {
@@ -36,7 +36,7 @@ case class FlatStaticHTMLRenderer(spec: ExtendedUnitSpec) extends BaseHTMLRender
        |       }
        |     }
        |   });
-       |   define("vegas", ["d3", "vg", "vl"], function(d3, vg, vl){
+       |   define("vega_bundle", ["d3", "vg", "vl"], function(d3, vg, vl){
        |     window["vg"] = vg;
        |     window["vl"] = vl;
        |     return vg;
