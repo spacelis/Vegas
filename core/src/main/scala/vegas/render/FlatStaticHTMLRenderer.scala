@@ -1,12 +1,11 @@
 package vegas.render
 
 import vegas.DSL.SpecBuilder
-import vegas.spec.Spec.ExtendedUnitSpec
 
 /**
   * @author Wen Li.
   */
-case class FlatStaticHTMLRenderer(spec: ExtendedUnitSpec) extends BaseHTMLRenderer {
+case class FlatStaticHTMLRenderer(specJson: String) extends BaseHTMLRenderer {
 
   override type DisplayFnType = (String, String) => Unit
   /**
@@ -53,7 +52,7 @@ case class FlatStaticHTMLRenderer(spec: ExtendedUnitSpec) extends BaseHTMLRender
     s"""
        | var embedSpec = {
        |   mode: "vega-lite",
-       |   spec: ${vegas.spec.toJson(spec)}
+       |   spec: $specJson
        | }
        | window.vg.embed("#$name", embedSpec, function(error, result) {
        |   if (error) {
@@ -85,6 +84,6 @@ case class FlatStaticHTMLRenderer(spec: ExtendedUnitSpec) extends BaseHTMLRender
 
 object FlatStaticHTMLRenderer {
 
-  implicit def toFlatStaticHTMLRenderer(sb: SpecBuilder): FlatStaticHTMLRenderer = { new FlatStaticHTMLRenderer(sb.spec) }
+  implicit def toFlatStaticHTMLRenderer(sb: SpecBuilder): FlatStaticHTMLRenderer = { new FlatStaticHTMLRenderer(sb.toJson) }
 
 }
